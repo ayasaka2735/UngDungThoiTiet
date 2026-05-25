@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.text.Normalizer
+import java.util.regex.Pattern
 
 class MoHinhXemThoiTiet : ViewModel() {
 
@@ -26,7 +28,17 @@ class MoHinhXemThoiTiet : ViewModel() {
         }
     }
 
-    // LOGIC GỢI Ý TÌM KIẾM CHUẨN TÀI LIỆU: Sử dụng lệnh .startsWith() thay cho lệnh .contains() cũ
+    // HÀM PHỤ TRỢ: Xóa dấu tiếng Việt phục vụ logic tìm kiếm không dấu
+    private fun boDauTiengViet(text: String): String {
+        val normalized = Normalizer.normalize(text, Normalizer.Form.NFD)
+        val pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+")
+        return pattern.matcher(normalized)
+            .replaceAll("")
+            .replace('Đ', 'D')
+            .replace('đ', 'd')
+    }
+
+    // LOGIC GỢI Ý TÌM KIẾM MỚI: Dùng filter lọc chữ chứa bất kỳ, không dấu, không hoa thường
     fun capNhatChuoiTimKiemVaLocGoiY(chuoiNhap: String) {
         if (chuoiNhap.isEmpty()) {
             _trangThaiUi.update {
@@ -37,15 +49,19 @@ class MoHinhXemThoiTiet : ViewModel() {
 
         // Kho danh sách tên các thành phố cố định trong tài liệu
         val khoTenThanhPhoMau = listOf("Hạ Long", "Hà Nội", "Hải Phòng", "Đà Nẵng", "Thành phố Hồ Chí Minh")
-        val danhSachLocDuoc = mutableListOf<DuLieuThoiTiet>()
 
-        // Vòng lặp duyệt chuỗi cơ bản theo bài học ôn tập Kotlin
-        for (tenCity in khoTenThanhPhoMau) {
-            // Sử dụng startsWith kiểm tra ký tự đầu khớp với chuỗi gõ chữ để tạo gợi ý
-            if (tenCity.startsWith(chuoiNhap, ignoreCase = true)) {
-                danhSachLocDuoc.add(khoDuLieu.timKiemThanhPhoGoiY(tenCity))
+        // Chuẩn hóa chuỗi người dùng nhập về dạng không dấu và viết thường
+        val chuoiNhapKhongDau = boDauTiengViet(chuoiNhap).lowercase()
+
+        // Sử dụng filter và map để lọc danh sách ngắn gọn chuẩn Kotlin
+        val danhSachLocDuoc = khoTenThanhPhoMau
+            .filter { tenCity ->
+                val tenCityKhongDau = boDauTiengViet(tenCity).lowercase()
+                tenCityKhongDau.contains(chuoiNhapKhongDau)
             }
-        }
+            .map { tenCity ->
+                khoDuLieu.timKiemThanhPhoGoiY(tenCity)
+            }
 
         _trangThaiUi.update { trang ->
             trang.copy(

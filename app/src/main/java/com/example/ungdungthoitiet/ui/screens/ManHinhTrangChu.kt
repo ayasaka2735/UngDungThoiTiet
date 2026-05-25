@@ -43,7 +43,7 @@ fun ManHinhTrangChu(
 
             // Khối đầu trang xếp ngang: Đưa nút Tìm kiếm lên cùng hàng với nút Sửa (Đã xóa tiêu đề)
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, top = 30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -128,8 +128,8 @@ fun ManHinhTrangChu(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onChuyenGioiThieu, modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(1.dp))
+            Button(onClick = onChuyenGioiThieu, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
                 Text(text = "Về chúng tôi")
             }
         }

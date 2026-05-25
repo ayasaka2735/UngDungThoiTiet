@@ -117,7 +117,7 @@ fun ManHinhGioiThieuNhom(
             onClick = onQuayLaiTrangChu, // Gọi hàm quay lại màn hình chính khi click
             modifier = Modifier
                 .fillMaxWidth() // Chiều rộng tối đa màn hình
-                .padding(bottom = 16.dp) // Cách lề dưới 16 đơn vị dp
+                .padding(bottom = 25.dp) // Cách lề dưới 16 đơn vị dp
         ) {
             Text(
                 text = "Quay lại Màn hình chính", // Nhãn hiển thị của nút
