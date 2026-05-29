@@ -2,21 +2,7 @@ package com.example.ungdungthoitiet.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-
-/**
- * Bộ chuyển đổi kiểu dữ liệu cho Room Database.
- * Giúp Room lưu List<String> thành chuỗi văn bản và chuyển ngược lại.
- */
-class BoDinhDangDuLieu {
-    @TypeConverter
-    fun tuDanhSachThanhChuoi(danhSach: List<String>): String = danhSach.joinToString(separator = "||")
-
-    @TypeConverter
-    fun tuChuoiThanhDanhSach(chuoi: String): List<String> =
-        if (chuoi.isEmpty()) emptyList() else chuoi.split("||")
-}
 
 /**
  * Thực thể (Entity) Room đại diện cho một bản ghi thời tiết trong bảng SQLite.

@@ -1,19 +1,5 @@
 package com.example.ungdungthoitiet.data
 
-// Lớp dữ liệu đại diện cho thông tin thời tiết của một thành phố theo tài liệu bài 3A-1
-data class DuLieuThoiTiet(
-    val tenThanhPho: String,      // Tên thành phố (Kiểu chuỗi)
-    val nhietDo: Int,             // Nhiệt độ (Kiểu số nguyên)
-    val trangThai: String,         // Trạng thái thời tiết (Kiểu chuỗi)
-    val doAm: Int,                // Độ ẩm không khí (Kiểu số nguyên)
-    val tocDoGio: Double,         // Tốc độ gió thổi (Kiểu số thực)
-    val apSuat: Int,              // Áp suất khí quyển (Kiểu số nguyên)
-    val nhietDoCaoNhat: Int,      // Nhiệt độ cao nhất (Kiểu số nguyên)
-    val nhietDoThapNhat: Int,     // Nhiệt độ thấp nhất (Kiểu số nguyên)
-    val duBaoTheoGio: List<String>, // Danh sách dự báo theo giờ (Kiểu chuỗi)
-    val duBaoTheoTuan: List<String> // Danh sách dự báo theo tuần (Kiểu chuỗi)
-)
-
 // Lớp lưu trữ trạng thái giao diện người dùng theo kiến trúc dữ liệu chảy một chiều (UDF) của bài 4A-1
 data class TrangThaiUiThoiTiet(
     val danhSachThanhPho: List<DuLieuThoiTiet> = emptyList(), // Danh sách hiển thị ở Trang chủ

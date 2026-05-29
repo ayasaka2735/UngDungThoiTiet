@@ -3,6 +3,7 @@ package com.example.ungdungthoitiet.data
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
 import java.net.URLEncoder
@@ -166,7 +167,7 @@ class KhoDuLieuThoiTiet(context: Context? = null) {
             val tuKhoaMaHoa = URLEncoder.encode(tuKhoa, "UTF-8")
             val duongDan = "https://api.openweathermap.org/geo/1.0/direct?q=$tuKhoaMaHoa&limit=5&appid=$maApi"
             val ketQua = URL(duongDan).readText()
-            val mangJson = org.json.JSONArray(ketQua)
+            val mangJson = JSONArray(ketQua)
             
             val danhSachGoiY = mutableListOf<String>()
             for (i in 0 until mangJson.length()) {
