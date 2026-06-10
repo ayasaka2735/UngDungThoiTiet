@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ungdungthoitiet.ui.screens.*
 import com.example.ungdungthoitiet.ui.theme.UngDungThoiTietTheme
 import com.example.ungdungthoitiet.viewmodel.MoHinhXemThoiTiet
+import android.util.Log
 
 class MainActivity : ComponentActivity() {
 
@@ -87,5 +88,25 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("LifecycleLog", "onStart được gọi")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("LifecycleLog", "onResume được gọi")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("LifecycleLog", "onPause được gọi")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("LifecycleLog", "onStop được gọi")
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ungdungthoitiet.data.TrangThaiUiThoiTiet
+import androidx.compose.foundation.clickable
 
 @Composable
 fun BangCaiDat(
@@ -25,11 +26,18 @@ fun BangCaiDat(
     onDong: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.4f))
+            .clickable { onDong() }, // Bấm vào vùng trống/vùng đen mờ bên cạnh để đóng cài đặt
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(0.9f).background(Color.White).padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .background(Color.White, shape = MaterialTheme.shapes.medium)
+                .padding(16.dp)
+                .clickable(enabled = false) { } // Khóa click tại đây, ngăn không cho tác động đến Trang chủ phía sau
         ) {
             Text("Bảng tùy chỉnh", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(Modifier.height(16.dp))

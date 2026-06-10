@@ -25,7 +25,7 @@ class KhoDuLieuThoiTiet {
         try {
             // 1. Lấy thời tiết hiện tại
             val weatherResponse = openWeatherApi.getCurrentWeather(tenThanhPho, maApi)
-            
+
             val nhietDoHienTai = weatherResponse.main.temp.toInt()
             val moTaHienTai = weatherResponse.weather.firstOrNull()?.description ?: ""
             val lechMuiGio = weatherResponse.timezone
@@ -41,7 +41,7 @@ class KhoDuLieuThoiTiet {
             duBaoTheoGio.add("Bây giờ - ${nhietDoHienTai}°C ($moTaHienTai)")
 
             val thoiGianHienTai = System.currentTimeMillis() / 1000
-            
+
             // Xử lý dự báo 24 giờ tiếp theo
             var soLuongGio = 0
             for (phanTu in danhSachDuBao) {
@@ -64,13 +64,13 @@ class KhoDuLieuThoiTiet {
             val ngayHomNay = lichHomNay.get(Calendar.DAY_OF_YEAR)
 
             val danhSachNgayDaThem = mutableSetOf<Int>()
-            
+
             // Bước 1: Ưu tiên mốc trưa
             for (phanTu in danhSachDuBao) {
                 val thoiGian = phanTu.dt
                 val lichPhanTu = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                 lichPhanTu.timeInMillis = (thoiGian + lechMuiGio) * 1000
-                
+
                 val ngayPhanTu = lichPhanTu.get(Calendar.DAY_OF_YEAR)
                 val gioPhanTu = lichPhanTu.get(Calendar.HOUR_OF_DAY)
 
@@ -112,6 +112,9 @@ class KhoDuLieuThoiTiet {
                 if (nhietDo < thapNhat) thapNhat = nhietDo
             }
 
+            // Lấy mã hiệu Icon hình ảnh từ API OpenWeather
+            val bieuTuongHienTai = weatherResponse.weather.firstOrNull()?.icon ?: "01d"
+
             DuLieuThoiTiet(
                 tenThanhPho = tenThanhPho,
                 nhietDo = nhietDoHienTai,
@@ -122,11 +125,16 @@ class KhoDuLieuThoiTiet {
                 nhietDoCaoNhat = caoNhat.toInt(),
                 nhietDoThapNhat = thapNhat.toInt(),
                 duBaoTheoGio = duBaoTheoGio,
-                duBaoTheoTuan = duBaoTheoTuan
+                duBaoTheoTuan = duBaoTheoTuan,
+                iconId = bieuTuongHienTai
             )
         } catch (e: Exception) {
-            val thongBao = if (e.message?.contains("404") == true) "Không tìm thấy" else ""
-            DuLieuThoiTiet(tenThanhPho, 0, thongBao, 0, 0.0, 0, 0, 0, emptyList(), emptyList())
+            // Nếu là lỗi 404 (không tìm thấy thành phố) thì mới trả về object rỗng kèm thông báo
+            if (e.message?.contains("404") == true) {
+                return@withContext DuLieuThoiTiet(tenThanhPho, 0, "Không tìm thấy", 0, 0.0, 0, 0, 0, emptyList(), emptyList(), "01d")
+            }
+            // Các lỗi khác (mất mạng, timeout) thì ném ngoại lệ để ViewModel xử lý chế độ Offline (Mục IV-B)
+            throw e
         }
     }
 

@@ -5,13 +5,14 @@ data class DuLieuThoiTiet(
     val tenThanhPho: String,      // Tên thành phố (Kiểu chuỗi)
     val nhietDo: Int,             // Nhiệt độ (Kiểu số nguyên)
     val trangThai: String,         // Trạng thái thời tiết (Kiểu chuỗi)
-    val doAm: Int,                // Độ ẩm không khí (Kiểu số nguyên)
+    val doAm: Int,                 // Độ ẩm không khí (Kiểu số nguyên)
     val tocDoGio: Double,         // Tốc độ gió thổi (Kiểu số thực)
     val apSuat: Int,              // Áp suất khí quyển (Kiểu số nguyên)
     val nhietDoCaoNhat: Int,      // Nhiệt độ cao nhất (Kiểu số nguyên)
     val nhietDoThapNhat: Int,     // Nhiệt độ thấp nhất (Kiểu số nguyên)
     val duBaoTheoGio: List<String>, // Danh sách dự báo theo giờ (Kiểu chuỗi)
-    val duBaoTheoTuan: List<String> // Danh sách dự báo theo tuần (Kiểu chuỗi)
+    val duBaoTheoTuan: List<String>, // Danh sách dự báo theo tuần (Kiểu chuỗi)
+    val iconId: String = "01d"     // Mã hiệu ảnh thời tiết phục vụ tải ảnh động bằng thư viện Coil
 )
 
 // Lớp lưu trữ trạng thái giao diện người dùng theo kiến trúc dữ liệu chảy một chiều (UDF) của bài 4A-1

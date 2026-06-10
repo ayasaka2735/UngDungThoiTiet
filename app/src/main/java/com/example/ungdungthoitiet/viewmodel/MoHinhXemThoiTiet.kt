@@ -39,21 +39,44 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
      */
     private fun khoiTaoCaiDatVaDuLieu() {
         viewModelScope.launch {
-            // 1. Đọc đơn vị đo lường từ DataStore
+            // Đọc toàn bộ 4 thông số từ DataStore khi mở ứng dụng
             val donViNhietDoDaLuu = quanLyCaiDat.donViNhietDo.first()
             val donViGioDaLuu = quanLyCaiDat.donViGio.first()
+            val donViLuongMuaDaLuu = quanLyCaiDat.donViLuongMua.first()
+            val donViKhoangCachDaLuu = quanLyCaiDat.donViKhoangCach.first()
 
-            _trangThaiUi.update { 
-                it.copy(donViNhietDo = donViNhietDoDaLuu, donViGio = donViGioDaLuu) 
+            _trangThaiUi.update {
+                it.copy(
+                    donViNhietDo = donViNhietDoDaLuu,
+                    donViGio = donViGioDaLuu,
+                    donViLuongMua = donViLuongMuaDaLuu,
+                    donViKhoangCach = donViKhoangCachDaLuu
+                )
             }
 
-            // 2. Đọc danh sách thành phố từ Room
             val danhSachLuuTrongRoom = thanhPhoDao.layTatCa()
-            
             if (danhSachLuuTrongRoom.isEmpty()) {
-                // Nếu lần đầu mở app, dùng mặc định
                 taiDuLieuThoiTietMacDinh()
             } else {
+                // HIỂN THỊ DỮ LIỆU CŨ TỪ ROOM TRƯỚC (CHẾ ĐỘ NGOẠI TUYẾN TỨC THÌ)
+                val danhSachBanDau = danhSachLuuTrongRoom.map { entity ->
+                    DuLieuThoiTiet(
+                        tenThanhPho = entity.tenThanhPho,
+                        nhietDo = entity.nhietDo,
+                        trangThai = entity.trangThai,
+                        doAm = entity.doAm,
+                        tocDoGio = entity.tocDoGio,
+                        apSuat = entity.apSuat,
+                        nhietDoCaoNhat = entity.nhietDoCaoNhat,
+                        nhietDoThapNhat = entity.nhietDoThapNhat,
+                        duBaoTheoGio = entity.duBaoTheoGio,
+                        duBaoTheoTuan = entity.duBaoTheoTuan,
+                        iconId = entity.iconId
+                    )
+                }
+                _trangThaiUi.update { it.copy(danhSachThanhPho = danhSachBanDau) }
+
+                // Sau đó mới thử cập nhật từ mạng để đồng bộ dữ liệu mới nhất
                 val danhSachTen = danhSachLuuTrongRoom.map { it.tenThanhPho }
                 taiDuLieuTheoDanhSach(danhSachTen)
             }
@@ -63,7 +86,6 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
     private fun taiDuLieuThoiTietMacDinh() {
         val macDinh = listOf("Hà Nội", "Hải Phòng", "Đà Nẵng")
         viewModelScope.launch {
-            // Lưu các thành phố mặc định vào Room để chúng không bị mất khi khởi động lại
             macDinh.forEach { ten ->
                 thanhPhoDao.themThanhPho(ThanhPhoEntity(ten))
             }
@@ -75,12 +97,48 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 _trangThaiUi.update { it.copy(dangTaiDuLieu = true) }
-                val danhSachMoi = danhSachTen.map { khoDuLieu.layThoiTiet(it) }
+                val danhSachMoi = danhSachTen.map { ten ->
+                    val data = khoDuLieu.layThoiTiet(ten)
+                    // Đồng bộ dữ liệu mới nhất từ mạng xuống SQLite cục bộ làm bộ nhớ đệm ngoại tuyến
+                    thanhPhoDao.themThanhPho(ThanhPhoEntity(
+                        tenThanhPho = data.tenThanhPho,
+                        nhietDo = data.nhietDo,
+                        trangThai = data.trangThai,
+                        doAm = data.doAm,
+                        tocDoGio = data.tocDoGio,
+                        apSuat = data.apSuat,
+                        nhietDoCaoNhat = data.nhietDoCaoNhat,
+                        nhietDoThapNhat = data.nhietDoThapNhat,
+                        iconId = data.iconId,
+                        duBaoTheoGio = data.duBaoTheoGio,
+                        duBaoTheoTuan = data.duBaoTheoTuan
+                    ))
+                    data
+                }
                 _trangThaiUi.update {
                     it.copy(danhSachThanhPho = danhSachMoi, dangTaiDuLieu = false)
                 }
-            } catch (e: Exception) {
-                _trangThaiUi.update { it.copy(dangTaiDuLieu = false) }
+            } catch (_: Exception) {
+                // CHẾ ĐỘ NGOẠI TUYẾN (MẤT MẠNG): Trả ngược toàn bộ thông số lịch sử từ Room DB lên giao diện người dùng theo mục IV-B
+                val danhSachEntity = thanhPhoDao.layTatCa()
+                val danhSachOffline = danhSachEntity.map { entity ->
+                    DuLieuThoiTiet(
+                        tenThanhPho = entity.tenThanhPho,
+                        nhietDo = entity.nhietDo,
+                        trangThai = entity.trangThai,
+                        doAm = entity.doAm,
+                        tocDoGio = entity.tocDoGio,
+                        apSuat = entity.apSuat,
+                        nhietDoCaoNhat = entity.nhietDoCaoNhat,
+                        nhietDoThapNhat = entity.nhietDoThapNhat,
+                        duBaoTheoGio = entity.duBaoTheoGio,
+                        duBaoTheoTuan = entity.duBaoTheoTuan,
+                        iconId = entity.iconId
+                    )
+                }
+                _trangThaiUi.update {
+                    it.copy(danhSachThanhPho = danhSachOffline, dangTaiDuLieu = false)
+                }
             }
         }
     }
@@ -97,7 +155,7 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
                         dangTaiDuLieu = false
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _trangThaiUi.update { it.copy(dangTaiDuLieu = false) }
             }
         }
@@ -106,14 +164,14 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
     fun capNhatChuoiTimKiemVaLocGoiY(chuoiNhap: String) {
         _trangThaiUi.update { it.copy(chuoiTimKiemHienTai = chuoiNhap, thanhPhoXemTruoc = null) }
         congViecTimKiem?.cancel()
-        
+
         if (chuoiNhap.isNotEmpty()) {
             congViecTimKiem = viewModelScope.launch {
                 delay(300)
                 _trangThaiUi.update { it.copy(dangTaiDuLieu = true) }
                 val goiY = khoDuLieu.timKiemThanhPho(chuoiNhap)
-                _trangThaiUi.update { 
-                    it.copy(danhSachGoiYTimKiem = goiY, dangTaiDuLieu = false) 
+                _trangThaiUi.update {
+                    it.copy(danhSachGoiYTimKiem = goiY, dangTaiDuLieu = false)
                 }
             }
         } else {
@@ -132,9 +190,21 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
             }
 
             if (!daTonTai) {
-                // Lưu vào Room
-                thanhPhoDao.themThanhPho(ThanhPhoEntity(thanhPho.tenThanhPho))
-                
+                // Đóng gói lưu trữ toàn bộ các thông tin chi tiết vào Room hỗ trợ chế độ xem offline
+                thanhPhoDao.themThanhPho(ThanhPhoEntity(
+                    tenThanhPho = thanhPho.tenThanhPho,
+                    nhietDo = thanhPho.nhietDo,
+                    trangThai = thanhPho.trangThai,
+                    doAm = thanhPho.doAm,
+                    tocDoGio = thanhPho.tocDoGio,
+                    apSuat = thanhPho.apSuat,
+                    nhietDoCaoNhat = thanhPho.nhietDoCaoNhat,
+                    nhietDoThapNhat = thanhPho.nhietDoThapNhat,
+                    iconId = thanhPho.iconId,
+                    duBaoTheoGio = thanhPho.duBaoTheoGio,
+                    duBaoTheoTuan = thanhPho.duBaoTheoTuan
+                ))
+
                 _trangThaiUi.update { trang ->
                     trang.copy(
                         danhSachThanhPho = trang.danhSachThanhPho + thanhPho,
@@ -144,8 +214,8 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
                     )
                 }
             } else {
-                _trangThaiUi.update { 
-                    it.copy(thanhPhoXemTruoc = null, chuoiTimKiemHienTai = "", thongBaoLoiNhapLieu = "Đã có trong danh sách") 
+                _trangThaiUi.update {
+                    it.copy(thanhPhoXemTruoc = null, chuoiTimKiemHienTai = "")
                 }
             }
         }
@@ -158,7 +228,7 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             // Xóa khỏi Room
             thanhPhoDao.xoaThanhPho(tenThanhPho)
-            
+
             _trangThaiUi.update { trang ->
                 trang.copy(danhSachThanhPho = trang.danhSachThanhPho.filterNot { it.tenThanhPho == tenThanhPho })
             }
@@ -187,8 +257,19 @@ class MoHinhXemThoiTiet(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun thayDoiDonViLuongMua(donVi: String) = _trangThaiUi.update { it.copy(donViLuongMua = donVi) }
-    fun thayDoiDonViKhoangCach(donVi: String) = _trangThaiUi.update { it.copy(donViKhoangCach = donVi) }
+    fun thayDoiDonViLuongMua(donVi: String) {
+        viewModelScope.launch {
+            quanLyCaiDat.luuDonViLuongMua(donVi)
+            _trangThaiUi.update { it.copy(donViLuongMua = donVi) }
+        }
+    }
+
+    fun thayDoiDonViKhoangCach(donVi: String) {
+        viewModelScope.launch {
+            quanLyCaiDat.luuDonViKhoangCach(donVi)
+            _trangThaiUi.update { it.copy(donViKhoangCach = donVi) }
+        }
+    }
 
     fun datLaiTrangThaiHuyBo() {
         _trangThaiUi.update {
